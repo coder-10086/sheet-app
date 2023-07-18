@@ -1,0 +1,107 @@
+#root {
+  min-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+.steps-box {
+  margin-top: 40px;
+}
+
+.toke-input {
+  width: 400px;
+  margin-bottom: 50px;
+}
+
+.org-input {
+  width: 400px;
+  margin-bottom: 30px;
+  margin-right: 85px;
+}
+
+.toke-button {
+  margin-left: 5px;
+}
+
+.input-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.margin-top {
+  margin-top: 20px;
+}
+
+.input-style {
+  width: 250px;
+}
+
+.search-style {
+  width: 250px;
+  text-align: left;
+}
+
+.upload-box {
+  margin-top: 40px;
+  .input-file {
+    margin-left: 100px;
+  }
+  .button-style {
+    margin-top: 20px;
+  }
+}
+
+.radio-box {
+  position: fixed;
+  left: 100px;
+  top: 150px;
+  transform: rotate(-30deg)
+}
+
+.black-theme {
+  background-color: black;
+}
+
+.white-theme {
+  background-color: aliceblue;
+}
+
+
