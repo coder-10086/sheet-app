@@ -214,6 +214,61 @@ const isRequired = val => {
   return res
 }
 
+const getDescribeText = (obj) => {
+  const targetObj = JSON.parse(obj.attributeType)
+  let paramsObj = {}
+  let text = ''
+  switch (targetObj.sxys) {
+    case 'select':
+      paramsObj = {
+        selectType: targetObj.type === 'tags' ? '单选' : '多选',
+        notice: targetObj.tsy || '',
+        showType: targetObj.showStyle === '02' ? '下拉框' : '平铺',
+      }
+      text = textTemplate.selectDescribe(paramsObj)
+      break
+    case 'RangePicker':
+      paramsObj = {
+        type: getRangePickerType(targetObj.type),
+        defaultValue: getPickerDefault(targetObj.mrz),
+        notice: targetObj.tsy || ''
+      }
+      text = textTemplate.rangePickerDescribe(paramsObj)
+      break
+    case 'input':
+      paramsObj = {
+        len: targetObj.maxLength || '',
+        inputType: '普通输入框',
+        defaultValue: targetObj.mrz || '',
+        notice: targetObj.tsy || '',
+      }
+      text = textTemplate.inputDescribe(paramsObj)
+      break
+    case 'DatePicker':
+      paramsObj = {
+        dateType: getDateType(targetObj.type),
+        defaultValue: getPickerDefault(targetObj.mrz),
+        notice: targetObj.tsy || '',
+      }
+      text = textTemplate.datePickerDescribe(paramsObj)
+      break
+    case 'InputNumber':
+      paramsObj = {
+        start: targetObj.min || '',
+        end: targetObj.max || '',
+        defaultValue: targetObj.mrx || '',
+        notice: targetObj.tsy || '',
+        numberType: targetObj.type === 'money' ? '金额' : '数值',
+        precision: targetObj.precision || '',
+        precisionType: getPrecisionType(targetObj.jdlx),
+        carryMode: getCarryMode(targetObj.jwfs),
+      }
+      text = textTemplate.inputNumberDescribe(paramsObj)
+      break
+  }
+  return text
+}
+
 export default {
   是否判断,
   getAttributeType,
@@ -229,5 +284,6 @@ export default {
   getDefaultValue,
   filterLoginInfo,
   getFlowText,
-  isRequired
+  isRequired,
+  getDescribeText
 }

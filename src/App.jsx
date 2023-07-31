@@ -18,9 +18,6 @@ import {
   matterDefintionInfo
 } from './http/api'
 
-import textTemplate from './utils/textTemplate';
-import toolFunc from './utils/tool';
-
 let initToken = sessionStorage.getItem('token')
 let initOrgID = sessionStorage.getItem('orgID')
 
@@ -40,8 +37,8 @@ function App() {
   const [orgID, setOrgID] = useState(initOrgID || '')
   const [current, setCurrent] = useState(0);
   const [fields, setFields] = useState([])
+  const [objFields, setObjFields] = useState([]);
   const [id, setId] = useState('');
-  const [fieldList, setFieldList] = useState([]);
   const [objectName, setObjectName] = useState('')
   const [objList, setObjList] = useState([])
   const [matterList, setMatterList] = useState([])
@@ -123,89 +120,6 @@ function App() {
     Promise.all(funcList)
   }, []);
 
-
-  const getDescribeText = (obj) => {
-    const targetObj = JSON.parse(obj.attributeType)
-    let paramsObj = {}
-    let text = ''
-    switch (targetObj.sxys) {
-      case 'select':
-        paramsObj = {
-          selectType: targetObj.type === 'tags' ? '单选' : '多选',
-          notice: targetObj.tsy || '',
-          showType: targetObj.showStyle === '02' ? '下拉框' : '平铺',
-        }
-        text = textTemplate.selectDescribe(paramsObj)
-        break
-      case 'RangePicker':
-        paramsObj = {
-          type: toolFunc.getRangePickerType(targetObj.type),
-          defaultValue: toolFunc.getPickerDefault(targetObj.mrz),
-          notice: targetObj.tsy || ''
-        }
-        text = textTemplate.rangePickerDescribe(paramsObj)
-        break
-      case 'input':
-        paramsObj = {
-          len: targetObj.maxLength || '',
-          inputType: '普通输入框',
-          defaultValue: targetObj.mrz || '',
-          notice: targetObj.tsy || '',
-        }
-        text = textTemplate.inputDescribe(paramsObj)
-        break
-      case 'DatePicker':
-        paramsObj = {
-          dateType: toolFunc.getDateType(targetObj.type),
-          defaultValue: toolFunc.getPickerDefault(targetObj.mrz),
-          notice: targetObj.tsy || '',
-        }
-        text = textTemplate.datePickerDescribe(paramsObj)
-        break
-      case 'InputNumber':
-        paramsObj = {
-          start: targetObj.min || '',
-          end: targetObj.max || '',
-          defaultValue: targetObj.mrx || '',
-          notice: targetObj.tsy || '',
-          numberType: targetObj.type === 'money' ? '金额' : '数值',
-          precision: targetObj.precision || '',
-          precisionType: toolFunc.getPrecisionType(targetObj.jdlx),
-          carryMode: toolFunc.getCarryMode(targetObj.jwfs),
-        }
-        text = textTemplate.inputNumberDescribe(paramsObj)
-        break
-    }
-    return text
-  }
-
-  const formatData = (responseList, fields) => {
-    let arr = []
-    console.log('formatData-fields-', fields);
-    for (let i = 0; i < responseList.length; i++) {
-      let C = { cell: `C${13 + i}`, value: fields[i]?.fieldName || responseList[i].fieldName }
-      let D = { cell: `D${13 + i}`, value: responseList[i].fieldName }
-      let E = { cell: `E${13 + i}`, value: `${responseList[i].dimensionClassesName}属性` }
-      let F = { cell: `F${13 + i}`, value: toolFunc.getAttributeType(responseList[i]) }
-      let G = { cell: `G${13 + i}`, value: getDescribeText(responseList[i]) }
-      let H = { cell: `H${13 + i}`, value: toolFunc.getDataSource(responseList[i]) }
-      let I = { cell: `I${13 + i}`, value: '——' }
-      let J = { cell: `J${13 + i}`, value: toolFunc.是否判断(responseList[i], 'dropDownAssociation', 1) }
-      let K = { cell: `K${13 + i}`, value: toolFunc.isRequired(JSON.parse(responseList[i].attributeType).sfbt) }
-      let L = { cell: `L${13 + i}`, value: toolFunc.是否判断(responseList[i], 'sfxs', 1) }
-      let M = { cell: `M${13 + i}`, value: toolFunc.是否判断(responseList[i], 'sfzhxzs', 1) }
-      let N = { cell: `N${13 + i}`, value: toolFunc.是否判断(responseList[i], 'sfbj', 1) }
-      let O = { cell: `O${13 + i}`, value: '——' }
-      let P = { cell: `P${13 + i}`, value: (responseList[i].attributeDescription).trim() || '——' }
-      let Q = { cell: `Q${13 + i}`, value: responseList[i].keyAttribute === 1 ? '是' : '否' }
-      let R = { cell: `R${13 + i}`, value: responseList[i].attributeClassificationName || '一级' }
-      let arrItem = [C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R]
-      arr.push(arrItem)
-    }
-    setFieldList(arr)
-    setObjectName(responseList[0].syObjectName)
-  }
-
   const queryPublicFields = async () => {
     const params = { syObjectNumber: " ", isShow: 1, page: 0, size: 0 }
     const [error, res] = await post(propertyInitialization, params)
@@ -230,7 +144,8 @@ function App() {
     }
     if (res.data.success && res.data.results.length > 0) {
       message.success(res.data.msg)
-      formatData(res.data.results, fields)
+      setObjFields(res.data.results)
+      setObjectName(res.data.results[0].syObjectName)
       setCurrent(current + 1)
     } else {
       message.warning(res.data.message || 'Data is null');
@@ -309,7 +224,6 @@ function App() {
 
     if (radioType === '事项') {
       await queryMatterInfo(id, selecteMatter)
-      console.log('查询事项--------');
     }
 
     setId('')
@@ -343,7 +257,6 @@ function App() {
   }
 
   const handleMatterChange = val => {
-    console.log('handleMatterChange--', val);
     setId(val[0])
     setSelecteMatter(val[1])
   }
@@ -369,9 +282,10 @@ function App() {
     manageObj,
     deptList,
     addCurrent: () => { setCurrent(current + 2) },
-    fieldList,
+    objFields,
     objectName,
     selectedObj,
+    fields
   }
 
   const matterProps = {

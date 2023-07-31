@@ -3,7 +3,6 @@ import { Buffer } from 'buffer'
 import { Button, message } from 'antd';
 import { useState } from 'react';
 import toolFunc from './utils/tool';
-import textTemplate from './utils/textTemplate';
 
 const MatterUpload = ({ matterDetail, addCurrent, loginList }) => {
   const [event, setEvent] = useState('');

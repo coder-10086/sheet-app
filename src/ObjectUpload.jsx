@@ -2,6 +2,7 @@ import ExcelJS from 'exceljs'
 import { Buffer } from 'buffer'
 import { Button, message } from 'antd';
 import { useState } from 'react';
+import toolFunc from './utils/tool'
 
 
 const findName = (id, list, filterFiled, targetFiled) => {
@@ -24,25 +25,57 @@ const ObjectUpload = (
     manageObj,
     deptList,
     addCurrent,
-    fieldList,
     objectName,
+    objFields,
     selectedObj,
+    fields
   }
 ) => {
   const [event, setEvent] = useState('');
-  const objBaseInfo = [
-    { cell: 'B2', value: objectName || '——' }, // 对象名称
-    { cell: 'B3', value: selectedObj.objectDataCategory === '01' ? '管理对象' : selectedObj.objectDataCategory === '02' ? '服务对象' : '业务对象' }, // 对象类型
-    { cell: 'B4', value: (selectedObj.syObjectClass === '01' && selectedObj.objectDataCategory === '03') ? '是' : '否' }, // 是否可配置修改事项
-    { cell: 'B5', value: findName(getLastStr(selectedObj.objectManager), manageObj, 'syObjectNumber', 'syObjectName') || '——' }, // 管理对象
-    { cell: 'B6', value: selectedObj.managementTeamName || '——' }, // 服务标识
-    { cell: 'B7', value: selectedObj.internalObject === 1 ? '是' : '否' }, // 是否内部对象
-    { cell: 'B8', value: selectedObj.managementTeamName || '——' }, // 管理组织
-    { cell: 'B9', value: selectedObj.managementRoleName || '——' }, // 管理角色
-    { cell: 'B10', value: `${selectedObj.syObjectDesc}\r\n 有${'xx'}个项目分类，${'xx'}个事项，${fieldList.length}个属性，${'xx'}个管理指标，${'xx'}个报表` }, // 对象概况
-  ]
+
+  const setObjFieldList = (responseList, fields) => {
+    let arr = []
+    for (let i = 0; i < responseList.length; i++) {
+      let C = { cell: `C${13 + i}`, value: fields[i]?.fieldName || responseList[i].fieldName }
+      let D = { cell: `D${13 + i}`, value: responseList[i].fieldName }
+      let E = { cell: `E${13 + i}`, value: `${responseList[i].dimensionClassesName}属性` }
+      let F = { cell: `F${13 + i}`, value: toolFunc.getAttributeType(responseList[i]) }
+      let G = { cell: `G${13 + i}`, value: toolFunc.getDescribeText(responseList[i]) }
+      let H = { cell: `H${13 + i}`, value: toolFunc.getDataSource(responseList[i]) }
+      let I = { cell: `I${13 + i}`, value: '——' }
+      let J = { cell: `J${13 + i}`, value: toolFunc.是否判断(responseList[i], 'dropDownAssociation', 1) }
+      let K = { cell: `K${13 + i}`, value: toolFunc.isRequired(JSON.parse(responseList[i].attributeType).sfbt) }
+      let L = { cell: `L${13 + i}`, value: toolFunc.是否判断(responseList[i], 'sfxs', 1) }
+      let M = { cell: `M${13 + i}`, value: toolFunc.是否判断(responseList[i], 'sfzhxzs', 1) }
+      let N = { cell: `N${13 + i}`, value: toolFunc.是否判断(responseList[i], 'sfbj', 1) }
+      let O = { cell: `O${13 + i}`, value: '——' }
+      let P = { cell: `P${13 + i}`, value: (responseList[i].attributeDescription).trim() || '——' }
+      let Q = { cell: `Q${13 + i}`, value: responseList[i].keyAttribute === 1 ? '是' : '否' }
+      let R = { cell: `R${13 + i}`, value: responseList[i].attributeClassificationName || '一级' }
+      let arrItem = [C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R]
+      arr.push(arrItem)
+    }
+    return arr
+  }
+
+  const setObjBaseInfo = () => {
+    const baseInfo = [
+      { cell: 'B2', value: objectName || '——' }, // 对象名称
+      { cell: 'B3', value: selectedObj.objectDataCategory === '01' ? '管理对象' : selectedObj.objectDataCategory === '02' ? '服务对象' : '业务对象' }, // 对象类型
+      { cell: 'B4', value: (selectedObj.syObjectClass === '01' && selectedObj.objectDataCategory === '03') ? '是' : '否' }, // 是否可配置修改事项
+      { cell: 'B5', value: findName(getLastStr(selectedObj.objectManager), manageObj, 'syObjectNumber', 'syObjectName') || '——' }, // 管理对象
+      { cell: 'B6', value: selectedObj.managementTeamName || '——' }, // 服务标识
+      { cell: 'B7', value: selectedObj.internalObject === 1 ? '是' : '否' }, // 是否内部对象
+      { cell: 'B8', value: selectedObj.managementTeamName || '——' }, // 管理组织
+      { cell: 'B9', value: selectedObj.managementRoleName || '——' }, // 管理角色
+      { cell: 'B10', value: `${selectedObj.syObjectDesc}\r\n 有${'xx'}个项目分类，${'xx'}个事项，${objFields.length}个属性，${'xx'}个管理指标，${'xx'}个报表` }, // 对象概况
+      { cell: 'B12', value: objectName || '——' }, // 对象名称
+    ]
+    return baseInfo
+  }
 
   const writeFieldsInfo = (worksheet) => {
+    const fieldList = setObjFieldList(objFields, fields)
     for (let i = 0; i < fieldList.length; i++) {
       for (let j = 0; j < fieldList[i].length; j++) {
         const cellAddress = fieldList[i][j].cell;
@@ -53,6 +86,7 @@ const ObjectUpload = (
   }
 
   const writeObjBaseInfo = (worksheet) => {
+    const objBaseInfo = setObjBaseInfo()
     for (let i = 0; i < objBaseInfo.length; i++) {
       const cellAddress = objBaseInfo[i].cell;
       const cell = worksheet.getCell(cellAddress);
